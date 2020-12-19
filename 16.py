@@ -286,8 +286,8 @@ for line in input.splitlines(): # input
     if m:
         name = m.group(1)
         ranges = []
-        ranges.append(list(range(int(m.group(2)), int(m.group(3)) + 1)))
-        ranges.append(list(range(int(m.group(4)), int(m.group(5)) + 1)))
+        ranges.append([ int(m.group(2)), int(m.group(3)) ])
+        ranges.append([ int(m.group(4)), int(m.group(5)) ])
         rules[name] = ranges
         continue
     
@@ -315,7 +315,7 @@ def value_fits_in_rules(value):
     ret = False
     for name, rule in rules.items():
         for range in rule:
-            if value >= range[0] and value <= range[-1]:
+            if range[0] <= value and value <= range[1]:
                 ret = True
     return ret
 
