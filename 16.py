@@ -273,6 +273,18 @@ nearby tickets:
 55,2,20
 38,6,12"""
 
+input3 = """class: 0-1 or 4-19
+row: 0-5 or 8-19
+seat: 0-13 or 16-19
+
+your ticket:
+11,12,13
+
+nearby tickets:
+3,9,18
+15,1,5
+5,14,9"""
+
 ### parsing
 rules = {}
 myTicket = []
@@ -331,3 +343,58 @@ for ticket in tickets:
 print(f'invalid tickets: {len(invalidTickets)}')
 print(f'invalid values: {len(invalidValues)}, sum: {sum(invalidValues)}')
 print()
+
+# part 2
+from copy import deepcopy
+
+for t in invalidTickets:
+    tickets.remove(t)
+tickets.append(myTicket) # do we wanna do this? bit unclear from the problem text
+print(f'invalid tickets removed, own added: {len(tickets)}')
+
+ruleCandidates = [ ]
+for i in range(0, len(myTicket)): # field idx => rule idx (#hits)
+    ruleCandidates.append(deepcopy(rules))
+
+def value_fits_rule(value, ranges):
+    ret = False
+
+    for r in ranges:
+        if r[0] <= value and value <= r[1]:
+            ret = True
+            break
+
+    return ret
+
+for fieldIdx, field in enumerate(ruleCandidates):
+    #print(f'field {fieldIdx} rules: {ruleCandidates[fieldIdx]}')
+    toRemove = []
+    for ruleIdx, ruleKey in enumerate(field):
+        ranges = rules[ruleKey]
+        for ticket in tickets:
+            if not value_fits_rule(ticket[fieldIdx], ranges):
+                #print(f'feld {fieldIdx}: {ruleKey} passt nicht fuer {ticket}')
+                toRemove.append(ruleKey)
+    
+    # delete rules that don't fit
+    for r in toRemove:
+        del field[r]
+    #print(f'remaining candidates: {field}\n')
+
+resolvedRules = {}
+while max([ len(x) for x in ruleCandidates ]) > 1:
+    for fieldIdx, field in enumerate(ruleCandidates):
+        if len(field) == 1:
+            eliminatedRuleName = list(field.keys())[0]
+            
+            resolvedRules[eliminatedRuleName] = fieldIdx
+            for f in ruleCandidates:
+                if eliminatedRuleName in f:
+                    del f[eliminatedRuleName]
+
+mult = 1
+for name, index in resolvedRules.items():
+    if name.startswith('departure'):
+        mult *= myTicket[index]
+
+print(f'resulting value: {mult}')
